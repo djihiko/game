@@ -43,6 +43,16 @@
 
   *{box-sizing:border-box; margin:0; padding:0;}
 
+  html{
+    scrollbar-gutter:stable;
+    scrollbar-color:var(--accent) transparent;
+    scrollbar-width:thin;
+  }
+  ::-webkit-scrollbar{ width:3px; height:3px; background:transparent; }
+  ::-webkit-scrollbar-track{ background:transparent; border-top:2ch solid transparent; border-bottom:2ch solid transparent; background-clip:padding-box; }
+  ::-webkit-scrollbar-thumb{ background-color:var(--accent); border-radius:6px; }
+  ::-webkit-scrollbar-thumb:hover{ background-color:var(--accent-dim); }
+
   body{
     background:var(--bg);
     color:var(--text);
@@ -264,8 +274,6 @@
     nav.tabs{ width:100%; }
     .tab{ flex:1; text-align:center; }
     .game-row{ grid-template-columns:52px 1fr auto auto; }
-    .game-row .del{ display:none; }
-    .game-row.swiping .del{ display:block; }
     .field-row{ flex-direction:column; gap:0; }
   }
 </style>
