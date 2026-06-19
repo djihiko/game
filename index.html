@@ -3,10 +3,10 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Пройдено — библиотека игр</title>
+<title>Игры кончей — библиотека игр</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=Press+Start+2P&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 <style>
@@ -25,9 +25,20 @@
     --rating-mid: #E8A23D;
     --rating-low: #D9573B;
     --radius: 3px;
-    --display: 'Space Grotesk', sans-serif;
+    --display: 'IBM Plex Mono', monospace;
     --mono: 'IBM Plex Mono', monospace;
-    --body: 'Inter', sans-serif;
+    --body: 'IBM Plex Mono', monospace;
+
+    /* spacing scale — use these instead of one-off px values */
+    --sp-1: 4px;
+    --sp-2: 8px;
+    --sp-3: 12px;
+    --sp-4: 16px;
+    --sp-5: 20px;
+    --sp-6: 24px;
+    --sp-7: 32px;
+    --sp-8: 48px;
+    --sp-9: 64px;
   }
 
   *{box-sizing:border-box; margin:0; padding:0;}
@@ -38,6 +49,26 @@
     font-family:var(--body);
     line-height:1.5;
     -webkit-font-smoothing:antialiased;
+    min-height:100vh;
+    position:relative;
+  }
+
+  body::before{
+    content:'';
+    position:fixed;
+    inset:-10% -10% -10% -10%;
+    z-index:-1;
+    pointer-events:none;
+    background:
+      radial-gradient(130% 55% at 18% 115%, rgba(201,240,49,0.28), transparent 60%),
+      radial-gradient(130% 55% at 82% 125%, rgba(201,240,49,0.22), transparent 65%),
+      linear-gradient(to top, rgba(201,240,49,0.13), transparent 45%);
+    animation:waveGlow 4s ease-in-out infinite alternate;
+  }
+
+  @keyframes waveGlow{
+    0%{ transform:translateY(0) scale(1); opacity:0.85; }
+    100%{ transform:translateY(-8%) scale(1.12); opacity:1; }
   }
 
   ::selection{ background:var(--accent); color:#11130F; }
@@ -45,74 +76,87 @@
   a{ color:inherit; }
 
   /* ---------- Layout shell ---------- */
-  .shell{ max-width:1040px; margin:0 auto; padding:0 24px; }
+  .shell{ max-width:1040px; margin:0 auto; padding:0 var(--sp-6); }
 
   header.top{
     border-bottom:1px solid var(--line);
-    padding:22px 0;
+    padding:var(--sp-6) 0;
     position:sticky; top:0;
     background:rgba(17,19,15,0.92);
     backdrop-filter:blur(8px);
     z-index:50;
   }
-  .top-inner{ display:flex; align-items:center; justify-content:space-between; gap:16px; }
-  .brand{ display:flex; align-items:baseline; gap:10px; }
+  .top-inner{ display:flex; align-items:center; justify-content:space-between; gap:var(--sp-4); }
+  .brand{ display:flex; align-items:center; gap:var(--sp-3); }
   .brand-mark{
-    font-family:var(--mono); font-size:12px; color:var(--accent);
-    border:1px solid var(--accent-dim); padding:3px 6px; border-radius:var(--radius);
-    letter-spacing:0.04em;
+    width:48px; height:auto; aspect-ratio:34/34; flex-shrink:0; display:block;
   }
-  .brand-name{ font-family:var(--display); font-size:19px; font-weight:600; letter-spacing:-0.01em; }
+  .brand-name{ font-family:'Press Start 2P', var(--display); font-size:14px; font-weight:400; letter-spacing:0; line-height:1; display:flex; align-items:center; position:relative; top:3px; }
 
-  nav.tabs{ display:flex; gap:4px; background:var(--bg-elevated); padding:4px; border-radius:6px; border:1px solid var(--line); }
+  nav.tabs{ display:flex; gap:var(--sp-1); background:var(--bg-elevated); padding:var(--sp-1); border-radius:6px; border:1px solid var(--line); }
   .tab{
     font-family:var(--mono); font-size:12px; letter-spacing:0.02em;
     color:var(--text-dim); background:none; border:none; cursor:pointer;
-    padding:8px 14px; border-radius:4px; transition:all .15s ease;
+    padding:var(--sp-2) var(--sp-4); border-radius:4px; transition:all .15s ease;
   }
   .tab:hover{ color:var(--text); }
   .tab.active{ background:var(--accent); color:#11130F; font-weight:600; }
 
-  main{ padding:36px 0 80px; }
+  main.shell{ padding:var(--sp-8) var(--sp-6) var(--sp-9); }
   .view{ display:none; }
   .view.active{ display:block; animation:fadein .25s ease; }
   @keyframes fadein{ from{opacity:0; transform:translateY(4px);} to{opacity:1; transform:none;} }
 
+  .section-header{ display:flex; align-items:center; gap:var(--sp-4); margin-bottom:var(--sp-4); }
   h2.section-title{
     font-family:var(--display); font-size:14px; font-weight:600;
     text-transform:uppercase; letter-spacing:0.08em; color:var(--text-dim);
-    margin-bottom:16px; display:flex; align-items:center; gap:10px;
+    margin-bottom:var(--sp-4); display:flex; align-items:center; gap:var(--sp-3);
   }
   h2.section-title::after{ content:''; flex:1; height:1px; background:var(--line); }
+  .section-header h2.section-title{ margin-bottom:0; flex:1; }
+  .section-header .btn-primary{ width:auto; flex-shrink:0; }
 
   /* ---------- Library view ---------- */
-  .lib-controls{ display:flex; gap:10px; margin-bottom:22px; flex-wrap:wrap; }
-  input[type=text], input[type=number], input[type=date], select, textarea{
+  .lib-controls{ display:flex; gap:var(--sp-3); margin-bottom:var(--sp-6); flex-wrap:wrap; }
+  input[type=text], input[type=number], input[type=date], input[type=password], select, textarea{
     background:var(--bg-elevated); border:1px solid var(--line); color:var(--text);
-    font-family:var(--body); font-size:14px; padding:10px 12px; border-radius:var(--radius);
+    font-family:var(--body); font-size:14px; padding:var(--sp-3); border-radius:var(--radius);
     outline:none; transition:border-color .15s ease;
   }
   input:focus, select:focus, textarea:focus{ border-color:var(--accent-dim); }
   #search{ flex:1; min-width:160px; }
-  select{ cursor:pointer; }
-
-  #empty-state{
-    text-align:center; padding:70px 20px; color:var(--text-faint);
-    border:1px dashed var(--line); border-radius:6px;
+  select{
+    cursor:pointer;
+    appearance:none; -webkit-appearance:none; -moz-appearance:none;
+    background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='8' height='5' viewBox='0 0 8 5'><path d='M1 1l3 3 3-3' stroke='%239CA28E' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/></svg>");
+    background-repeat:no-repeat;
+    background-position:right var(--sp-3) center;
+    padding:var(--sp-3) calc(var(--sp-3) + 8px + var(--sp-2)) var(--sp-3) var(--sp-3);
   }
-  #empty-state .glyph{ font-family:var(--mono); font-size:32px; color:var(--text-faint); margin-bottom:10px; display:block; }
-  #empty-state p{ font-size:14px; max-width:340px; margin:0 auto; }
+
+  .empty-block{
+    text-align:center; padding:var(--sp-9) var(--sp-5); color:var(--text-faint);
+    border:1px dashed var(--line); border-radius:6px; margin-top:var(--sp-4);
+  }
+  .empty-block .glyph{ font-family:var(--mono); font-size:32px; color:var(--text-faint); margin-bottom:var(--sp-3); display:block; }
+  .empty-block p{ font-size:14px; max-width:340px; margin:0 auto; }
 
   .game-row{
-    display:grid; grid-template-columns:46px 1fr auto auto;
-    align-items:center; gap:16px;
-    padding:14px 16px; border:1px solid var(--line-soft); border-radius:var(--radius);
-    background:var(--bg-card); margin-bottom:8px;
+    display:grid; grid-template-columns:64px 1fr auto auto;
+    align-items:center; gap:var(--sp-4);
+    padding:var(--sp-4) var(--sp-5); border:1px solid var(--line-soft); border-radius:var(--radius);
+    background:var(--bg-card); margin-bottom:var(--sp-3);
     transition:border-color .15s ease;
   }
   .game-row:hover{ border-color:var(--line); }
-  .game-rank{ font-family:var(--mono); font-size:18px; font-weight:700; text-align:center; }
-  .game-info .name{ font-family:var(--display); font-size:15px; font-weight:600; margin-bottom:3px; }
+  .game-rank{ position:relative; width:64px; height:64px; flex-shrink:0; }
+  .game-rank .star-badge{ position:absolute; inset:0; width:100%; height:100%; fill:var(--accent); }
+  .game-rank .rank-num{
+    position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
+    font-family:var(--mono); font-weight:700; font-size:19px; color:var(--bg);
+  }
+  .game-info .name{ font-family:var(--display); font-size:15px; font-weight:600; margin-bottom:var(--sp-1); }
   .game-info .meta{ font-family:var(--mono); font-size:11px; color:var(--text-dim); letter-spacing:0.02em; }
   .game-row .del{
     background:none; border:1px solid var(--line); color:var(--text-faint);
@@ -121,54 +165,88 @@
   }
   .game-row .del:hover{ border-color:var(--rating-low); color:var(--rating-low); }
 
+  /* ---------- Auth ---------- */
+  .auth-box{ display:flex; align-items:center; gap:var(--sp-3); }
+  .auth-status{ font-family:var(--mono); font-size:12px; color:var(--text-dim); }
+  .btn-ghost{
+    background:none; border:1px solid var(--line); color:var(--text-dim); font-family:var(--mono);
+    font-size:12px; padding:var(--sp-2) var(--sp-3); border-radius:var(--radius); cursor:pointer; transition:all .15s ease;
+  }
+  .btn-ghost:hover{ border-color:var(--accent-dim); color:var(--text); }
+  #login-modal{
+    position:fixed; inset:0; background:rgba(17,19,15,0.85); display:none;
+    align-items:center; justify-content:center; z-index:100;
+  }
+  #login-modal.open{ display:flex; }
+  .login-card{
+    background:var(--bg-card); border:1px solid var(--line); border-radius:6px;
+    padding:var(--sp-6); width:300px;
+  }
+  .login-card h3{ font-family:var(--display); font-size:16px; margin-bottom:var(--sp-4); }
+  .login-card .field{ margin-bottom:var(--sp-3); }
+  .login-card .row{ display:flex; gap:var(--sp-2); margin-top:var(--sp-4); }
+  .login-card .row button{ flex:1; }
+
+  .password-wrap{ position:relative; }
+  .password-wrap input{ width:100%; padding-right:calc(var(--sp-3) + 20px); }
+  .password-toggle{
+    position:absolute; right:var(--sp-2); top:50%; transform:translateY(-50%);
+    background:none; border:none; cursor:pointer; font-size:14px; line-height:1;
+    color:var(--text-dim); padding:var(--sp-1);
+  }
+  .password-toggle:hover{ color:var(--text); }
+
   /* ---------- Add view ---------- */
   .form-wrap{ max-width:520px; }
-  .field{ margin-bottom:18px; }
+  .field{ margin-bottom:var(--sp-4); }
   .field label{
     display:block; font-family:var(--mono); font-size:11px; text-transform:uppercase;
-    letter-spacing:0.06em; color:var(--text-dim); margin-bottom:6px;
+    letter-spacing:0.06em; color:var(--text-dim); margin-bottom:var(--sp-2);
   }
   .field input, .field select, .field textarea{ width:100%; }
-  .field-row{ display:flex; gap:14px; }
+  .field-row{ display:flex; gap:var(--sp-4); }
   .field-row .field{ flex:1; }
-  .rating-line{ display:flex; align-items:center; gap:14px; }
-  .rating-line input[type=range]{ flex:1; accent-color:var(--accent); }
+  .rating-line{ display:flex; align-items:center; gap:var(--sp-4); }
   .rating-num{ font-family:var(--display); font-size:22px; font-weight:700; color:var(--accent); min-width:38px; }
+
+  .star-rating{ display:flex; gap:var(--sp-1); }
+  .star-wrap{ position:relative; width:30px; height:30px; cursor:pointer; }
+  .star-wrap svg{ position:absolute; inset:0; width:100%; height:100%; }
+  .star-wrap .star-bg{ fill:var(--line); }
+  .star-wrap .star-fill{ fill:var(--accent); }
+  .star-half{ position:absolute; top:0; bottom:0; width:50%; z-index:2; }
+  .star-half.left{ left:0; }
+  .star-half.right{ right:0; }
   textarea{ width:100%; resize:vertical; font-family:var(--body); }
 
   .btn-primary{
     background:var(--accent); color:#11130F; border:none; font-family:var(--display);
-    font-weight:700; font-size:14px; padding:13px 20px; border-radius:var(--radius);
+    font-weight:700; font-size:14px; padding:var(--sp-3) var(--sp-5); border-radius:var(--radius);
     cursor:pointer; width:100%; transition:opacity .15s ease; letter-spacing:0.01em;
   }
   .btn-primary:hover{ opacity:0.88; }
   .btn-primary:disabled{ opacity:0.5; cursor:not-allowed; }
-  .form-status{ font-family:var(--mono); font-size:12px; margin-top:10px; min-height:16px; }
+  .form-status{ font-family:var(--mono); font-size:12px; margin-top:var(--sp-3); min-height:16px; }
   .form-status.ok{ color:var(--accent); }
   .form-status.err{ color:var(--rating-low); }
 
   /* ---------- Stats view ---------- */
-  .metric-grid{ display:grid; grid-template-columns:repeat(auto-fit, minmax(150px,1fr)); gap:10px; margin-bottom:34px; }
-  .metric{ background:var(--bg-card); border:1px solid var(--line-soft); border-radius:var(--radius); padding:16px; }
-  .metric .label{ font-family:var(--mono); font-size:10px; text-transform:uppercase; letter-spacing:0.06em; color:var(--text-dim); margin-bottom:8px; }
+  .metric-grid{ display:grid; grid-template-columns:repeat(auto-fit, minmax(150px,1fr)); gap:var(--sp-3); margin-bottom:var(--sp-7); }
+  .metric{ background:var(--bg-card); border:1px solid var(--line-soft); border-radius:var(--radius); padding:var(--sp-4); }
+  .metric .label{ font-family:var(--mono); font-size:10px; text-transform:uppercase; letter-spacing:0.06em; color:var(--text-dim); margin-bottom:var(--sp-2); }
   .metric .value{ font-family:var(--display); font-size:28px; font-weight:700; }
 
-  .chart-block{ margin-bottom:38px; }
-  .chart-box{ position:relative; height:230px; background:var(--bg-card); border:1px solid var(--line-soft); border-radius:var(--radius); padding:16px; }
+  .chart-block{ margin-bottom:var(--sp-7); }
+  .chart-box{ position:relative; height:230px; background:var(--bg-card); border:1px solid var(--line-soft); border-radius:var(--radius); padding:var(--sp-4); }
 
-  #stats-empty{ text-align:center; padding:70px 20px; color:var(--text-faint); border:1px dashed var(--line); border-radius:6px; }
-
-  footer{ border-top:1px solid var(--line); padding:20px 0; text-align:center; }
-  footer p{ font-family:var(--mono); font-size:11px; color:var(--text-faint); }
-
-  #loading-screen{ text-align:center; padding:120px 20px; color:var(--text-dim); font-family:var(--mono); font-size:13px; }
-  #error-screen{ display:none; text-align:center; padding:80px 20px; color:var(--rating-low); font-family:var(--mono); font-size:13px; max-width:480px; margin:0 auto; }
+  #loading-screen{ text-align:center; padding:var(--sp-9) var(--sp-5); color:var(--text-dim); font-family:var(--mono); font-size:13px; }
+  #error-screen{ display:none; text-align:center; padding:var(--sp-8) var(--sp-5); color:var(--rating-low); font-family:var(--mono); font-size:13px; max-width:480px; margin:0 auto; }
 
   @media (max-width:600px){
-    .top-inner{ flex-direction:column; align-items:flex-start; gap:14px; }
+    .top-inner{ flex-direction:column; align-items:flex-start; gap:var(--sp-4); }
     nav.tabs{ width:100%; }
     .tab{ flex:1; text-align:center; }
-    .game-row{ grid-template-columns:32px 1fr auto; }
+    .game-row{ grid-template-columns:52px 1fr auto; }
     .game-row .del{ display:none; }
     .game-row.swiping .del{ display:block; }
     .field-row{ flex-direction:column; gap:0; }
@@ -177,19 +255,48 @@
 </head>
 <body>
 
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="star-icon" viewBox="0 0 2505 2467">
+    <path d="M1252.18 0L1531.81 503.231L2069.49 297.474L1960.22 862.713L2504.37 1050.71L2057.34 1413.47L2353.33 1907.25L1777.71 1897.8L1687.06 2466.32L1252.18 2089.07L817.305 2466.32L726.657 1897.8L151.032 1907.25L447.03 1413.47L0.000488281 1050.71L544.143 862.713L434.879 297.474L972.557 503.231L1252.18 0Z"/>
+  </symbol>
+</svg>
+
 <header class="top">
   <div class="shell top-inner">
     <div class="brand">
-      <span class="brand-mark">▣</span>
-      <span class="brand-name">Пройдено</span>
+      <img class="brand-mark" src="data:image/png;base64,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" alt="логотип">
+      <span class="brand-name">Игры кончей</span>
     </div>
     <nav class="tabs">
       <button class="tab active" data-view="library">Библиотека</button>
-      <button class="tab" data-view="add">Добавить</button>
+      <button class="tab" data-view="my">Мои оценки</button>
       <button class="tab" data-view="stats">Аналитика</button>
     </nav>
+    <div class="auth-box" id="auth-box"></div>
   </div>
 </header>
+
+<div id="login-modal">
+  <div class="login-card">
+    <h3>Вход</h3>
+    <div class="field">
+      <label for="login-email">Email</label>
+      <input type="text" id="login-email" placeholder="friend@example.com">
+    </div>
+    <div class="field">
+      <label for="login-password">Пароль</label>
+      <div class="password-wrap">
+        <input type="password" id="login-password" placeholder="••••••••">
+        <button type="button" class="password-toggle" id="login-password-toggle" aria-label="Показать пароль">👁</button>
+      </div>
+    </div>
+    <p class="form-status" id="login-status"></p>
+    <div class="row">
+      <button class="btn-ghost" id="login-cancel">Отмена</button>
+      <button class="btn-primary" id="login-submit">Войти</button>
+    </div>
+  </div>
+</div>
 
 <main class="shell">
 
@@ -202,6 +309,7 @@
       <div class="lib-controls">
         <input type="text" id="search" placeholder="Поиск по названию…">
         <select id="filter-genre"><option value="">Все жанры</option></select>
+        <select id="filter-author"><option value="">Все авторы</option></select>
         <select id="sort-by">
           <option value="date-desc">Сначала новые</option>
           <option value="date-asc">Сначала старые</option>
@@ -211,15 +319,30 @@
           <option value="name-asc">Название А-Я</option>
         </select>
       </div>
-      <div id="empty-state" style="display:none;">
+      <div id="empty-state" class="empty-block" style="display:none;">
         <span class="glyph">∅</span>
-        <p>Пока пусто. Перейди во вкладку «Добавить» и занеси первую пройденную игру.</p>
+        <p>Нет оценок от кончей</p>
       </div>
       <div id="game-list"></div>
     </section>
 
+    <section id="view-my" class="view">
+      <div class="section-header">
+        <h2 class="section-title">Мои оценки</h2>
+        <button class="btn-primary" id="my-new-btn">+ Новая оценка</button>
+      </div>
+      <div id="my-login-required" class="empty-block" style="display:none;">
+        <p>Войди в свой аккаунт, чтобы видеть и добавлять свои оценки.</p>
+      </div>
+      <div id="my-empty-state" class="empty-block" style="display:none;">
+        <span class="glyph">∅</span>
+        <p>Добавь новую оценку, жмякнув на зеленую кнопку сверху</p>
+      </div>
+      <div id="my-game-list"></div>
+    </section>
+
     <section id="view-add" class="view">
-      <h2 class="section-title">Новая запись</h2>
+      <h2 class="section-title">Новая оценка</h2>
       <div class="form-wrap">
         <div class="field">
           <label for="f-name">Название игры</label>
@@ -238,9 +361,16 @@
           </div>
         </div>
         <div class="field">
-          <label for="f-rating">Оценка</label>
+          <label>Оценка</label>
           <div class="rating-line">
-            <input type="range" id="f-rating" min="1" max="10" step="0.5" value="7">
+            <div class="star-rating" id="f-rating-stars">
+              <span class="star-wrap" data-star="1"><svg class="star-bg"><use href="#star-icon"/></svg><svg class="star-fill"><use href="#star-icon"/></svg><span class="star-half left"></span><span class="star-half right"></span></span>
+              <span class="star-wrap" data-star="2"><svg class="star-bg"><use href="#star-icon"/></svg><svg class="star-fill"><use href="#star-icon"/></svg><span class="star-half left"></span><span class="star-half right"></span></span>
+              <span class="star-wrap" data-star="3"><svg class="star-bg"><use href="#star-icon"/></svg><svg class="star-fill"><use href="#star-icon"/></svg><span class="star-half left"></span><span class="star-half right"></span></span>
+              <span class="star-wrap" data-star="4"><svg class="star-bg"><use href="#star-icon"/></svg><svg class="star-fill"><use href="#star-icon"/></svg><span class="star-half left"></span><span class="star-half right"></span></span>
+              <span class="star-wrap" data-star="5"><svg class="star-bg"><use href="#star-icon"/></svg><svg class="star-fill"><use href="#star-icon"/></svg><span class="star-half left"></span><span class="star-half right"></span></span>
+            </div>
+            <input type="hidden" id="f-rating" value="7">
             <span class="rating-num" id="f-rating-out">7.0</span>
           </div>
         </div>
@@ -264,8 +394,8 @@
     </section>
 
     <section id="view-stats" class="view">
-      <div id="stats-empty" style="display:none;">
-        <span class="glyph" style="font-family:var(--mono); font-size:32px; color:var(--text-faint); display:block; margin-bottom:10px;">∅</span>
+      <div id="stats-empty" class="empty-block" style="display:none;">
+        <span class="glyph">∅</span>
         <p>Добавь хотя бы пару игр, чтобы увидеть аналитику.</p>
       </div>
       <div id="stats-content" style="display:none;">
@@ -293,10 +423,6 @@
   </div>
 </main>
 
-<footer>
-  <p class="shell">личная библиотека · данные хранятся в твоей базе Supabase</p>
-</footer>
-
 <script>
 // ====== НАСТРОЙКИ ПОДКЛЮЧЕНИЯ К SUPABASE ======
 const SUPABASE_URL = 'https://essawqrlxyrwmvwqqxqq.supabase.co';
@@ -306,20 +432,111 @@ const SUPABASE_KEY = 'sb_publishable_J6uizUFtMWYArf3RfEfKVw_Qi1XmF3a';
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 let games = [];
 let charts = {};
+let currentUser = null;
+let profiles = {};
+
+// ---------- Auth ----------
+function renderAuthBox(){
+  const box = document.getElementById('auth-box');
+  if (currentUser){
+    box.innerHTML = `
+      <span class="auth-status">${escapeHtml(currentUser.email)}</span>
+      <button class="btn-ghost" id="logout-btn">Выйти</button>
+    `;
+    document.getElementById('logout-btn').addEventListener('click', async () => {
+      await sb.auth.signOut();
+      currentUser = null;
+      renderAuthBox();
+      renderAll();
+    });
+  } else {
+    box.innerHTML = `<button class="btn-ghost" id="login-open">Войти</button>`;
+    document.getElementById('login-open').addEventListener('click', openLoginModal);
+  }
+}
+
+function openLoginModal(){
+  document.getElementById('login-email').value = '';
+  document.getElementById('login-password').value = '';
+  document.getElementById('login-password').type = 'password';
+  document.getElementById('login-password-toggle').textContent = '👁';
+  document.getElementById('login-status').textContent = '';
+  document.getElementById('login-modal').classList.add('open');
+}
+function closeLoginModal(){
+  document.getElementById('login-modal').classList.remove('open');
+}
+document.getElementById('login-cancel').addEventListener('click', closeLoginModal);
+
+['login-email', 'login-password'].forEach(id => {
+  document.getElementById(id).addEventListener('keydown', e => {
+    if (e.key === 'Enter') document.getElementById('login-submit').click();
+  });
+});
+
+document.getElementById('login-password-toggle').addEventListener('click', () => {
+  const input = document.getElementById('login-password');
+  const btn = document.getElementById('login-password-toggle');
+  const showing = input.type === 'text';
+  input.type = showing ? 'password' : 'text';
+  btn.textContent = showing ? '👁' : '🙈';
+  btn.setAttribute('aria-label', showing ? 'Показать пароль' : 'Скрыть пароль');
+});
+
+document.getElementById('login-submit').addEventListener('click', async () => {
+  const email = document.getElementById('login-email').value.trim();
+  const password = document.getElementById('login-password').value;
+  const status = document.getElementById('login-status');
+  if (!email || !password){
+    status.textContent = 'Заполни email и пароль';
+    status.className = 'form-status err';
+    return;
+  }
+  const { data, error } = await sb.auth.signInWithPassword({ email, password });
+  if (error){
+    status.textContent = 'Ошибка входа: ' + error.message;
+    status.className = 'form-status err';
+    return;
+  }
+  currentUser = data.user;
+  closeLoginModal();
+  renderAuthBox();
+  renderAll();
+});
 
 // ---------- Tabs ----------
+function switchView(view){
+  document.querySelectorAll('.tab').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  const tabBtn = document.querySelector(`.tab[data-view="${view}"]`);
+  if (tabBtn) tabBtn.classList.add('active');
+  document.getElementById('view-' + view).classList.add('active');
+  if (view === 'stats') renderStats();
+  if (view === 'my') renderMyGames();
+}
+
 document.querySelectorAll('.tab').forEach(btn => {
-  btn.addEventListener('click', () => {
-    document.querySelectorAll('.tab').forEach(b => b.classList.remove('active'));
-    document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
-    btn.classList.add('active');
-    document.getElementById('view-' + btn.dataset.view).classList.add('active');
-    if (btn.dataset.view === 'stats') renderStats();
-  });
+  btn.addEventListener('click', () => switchView(btn.dataset.view));
+});
+
+document.getElementById('my-new-btn').addEventListener('click', () => {
+  if (!currentUser){
+    openLoginModal();
+    return;
+  }
+  switchView('add');
 });
 
 // ---------- Load ----------
 async function loadGames(){
+  const { data: sessionData } = await sb.auth.getSession();
+  currentUser = sessionData?.session?.user || null;
+  renderAuthBox();
+
+  const { data: profileData } = await sb.from('profiles').select('*');
+  profiles = {};
+  (profileData || []).forEach(p => { profiles[p.id] = p.name; });
+
   const { data, error } = await sb.from('games').select('*').order('play_date', { ascending: false });
   if (error){
     document.getElementById('loading-screen').style.display = 'none';
@@ -335,13 +552,44 @@ async function loadGames(){
 }
 
 // ---------- Add ----------
-document.getElementById('f-rating').addEventListener('input', e => {
-  document.getElementById('f-rating-out').textContent = parseFloat(e.target.value).toFixed(1);
+function renderStarRating(value){
+  document.querySelectorAll('#f-rating-stars .star-wrap').forEach(wrap => {
+    const i = Number(wrap.dataset.star);
+    const starMin = (i - 1) * 2;
+    const frac = Math.max(0, Math.min(1, (value - starMin) / 2));
+    wrap.querySelector('.star-fill').style.clipPath = `inset(0 ${(1 - frac) * 100}% 0 0)`;
+  });
+}
+
+function setRating(value){
+  value = Math.max(0.5, Math.min(10, value));
+  document.getElementById('f-rating').value = value;
+  document.getElementById('f-rating-out').textContent = value.toFixed(1);
+  renderStarRating(value);
+}
+
+document.getElementById('f-rating-stars').addEventListener('click', e => {
+  const half = e.target.closest('.star-half');
+  if (!half) return;
+  const wrap = half.closest('.star-wrap');
+  const i = Number(wrap.dataset.star);
+  const isLeft = half.classList.contains('left');
+  setRating((i - 1) * 2 + (isLeft ? 1 : 2));
 });
+
+renderStarRating(7);
 
 document.getElementById('f-submit').addEventListener('click', async () => {
   const name = document.getElementById('f-name').value.trim();
   const status = document.getElementById('f-status');
+
+  if (!currentUser){
+    status.textContent = 'Нужно войти, чтобы добавлять игры';
+    status.className = 'form-status err';
+    openLoginModal();
+    return;
+  }
+
   if (!name){
     status.textContent = 'Укажи название игры';
     status.className = 'form-status err';
@@ -360,7 +608,8 @@ document.getElementById('f-submit').addEventListener('click', async () => {
     rating: parseFloat(document.getElementById('f-rating').value),
     hours: parseFloat(document.getElementById('f-hours').value) || 0,
     play_date: document.getElementById('f-date').value || new Date().toISOString().slice(0,10),
-    note: document.getElementById('f-note').value.trim()
+    note: document.getElementById('f-note').value.trim(),
+    user_id: currentUser.id
   };
 
   const { data, error } = await sb.from('games').insert(payload).select();
@@ -385,10 +634,10 @@ document.getElementById('f-submit').addEventListener('click', async () => {
   document.getElementById('f-hours').value = '';
   document.getElementById('f-note').value = '';
   document.getElementById('f-date').value = '';
-  document.getElementById('f-rating').value = 7;
-  document.getElementById('f-rating-out').textContent = '7.0';
+  setRating(7);
 
   renderAll();
+  setTimeout(() => switchView('my'), 600);
 });
 
 // ---------- Delete ----------
@@ -407,10 +656,12 @@ function escapeHtml(s){
   return d.innerHTML;
 }
 
-function ratingColor(r){
-  if (r >= 8) return 'var(--rating-high)';
-  if (r >= 5) return 'var(--rating-mid)';
-  return 'var(--rating-low)';
+function rankBadgeHtml(rating){
+  const display = Number(rating) % 1 === 0 ? Number(rating).toFixed(0) : Number(rating).toFixed(1);
+  return `
+    <svg class="star-badge"><use href="#star-icon"/></svg>
+    <span class="rank-num">${display}</span>
+  `;
 }
 
 function populateFilters(){
@@ -422,18 +673,29 @@ function populateFilters(){
   const current = sel.value;
   sel.innerHTML = '<option value="">Все жанры</option>' + genres.map(g => `<option value="${escapeHtml(g)}">${escapeHtml(g)}</option>`).join('');
   sel.value = current;
+
+  const authorIds = [...new Set(games.map(g => g.user_id).filter(Boolean))];
+  const authorSel = document.getElementById('filter-author');
+  const currentAuthor = authorSel.value;
+  authorSel.innerHTML = '<option value="">Все авторы</option>' + authorIds
+    .map(id => ({ id, name: profiles[id] || 'Без имени' }))
+    .sort((a,b) => a.name.localeCompare(b.name))
+    .map(a => `<option value="${a.id}">${escapeHtml(a.name)}</option>`).join('');
+  authorSel.value = currentAuthor;
 }
 
 function renderLibrary(){
   populateFilters();
   const search = document.getElementById('search').value.toLowerCase();
   const genreFilter = document.getElementById('filter-genre').value;
+  const authorFilter = document.getElementById('filter-author').value;
   const sortBy = document.getElementById('sort-by').value;
 
   let list = games.filter(g => {
     const matchSearch = (g.name || '').toLowerCase().includes(search);
     const matchGenre = !genreFilter || g.genre === genreFilter;
-    return matchSearch && matchGenre;
+    const matchAuthor = !authorFilter || g.user_id === authorFilter;
+    return matchSearch && matchGenre && matchAuthor;
   });
 
   list.sort((a,b) => {
@@ -447,21 +709,50 @@ function renderLibrary(){
   });
 
   document.getElementById('empty-state').style.display = games.length === 0 ? 'block' : 'none';
-  document.getElementById('game-list').innerHTML = list.map(g => `
+  document.getElementById('game-list').innerHTML = buildGameRowsHtml(list);
+}
+
+function buildGameRowsHtml(list){
+  return list.map(g => `
     <div class="game-row">
-      <div class="game-rank" style="color:${ratingColor(g.rating)}">${Number(g.rating).toFixed(1)}</div>
+      <div class="game-rank" title="${Number(g.rating).toFixed(1)} / 10">${rankBadgeHtml(g.rating)}</div>
       <div class="game-info">
         <div class="name">${escapeHtml(g.name)}</div>
-        <div class="meta">${escapeHtml(g.genre)} · ${escapeHtml(g.platform)} · ${g.hours}ч · ${escapeHtml(g.play_date)}</div>
+        <div class="meta">${escapeHtml(profiles[g.user_id] || 'Без имени')} · ${escapeHtml(g.genre)} · ${escapeHtml(g.platform)} · ${g.hours}ч · ${escapeHtml(g.play_date)}</div>
       </div>
       <div></div>
-      <button class="del" onclick="deleteGame('${g.id}')" aria-label="Удалить">✕</button>
+      ${currentUser && g.user_id === currentUser.id
+        ? `<button class="del" onclick="deleteGame('${g.id}')" aria-label="Удалить">✕</button>`
+        : `<div></div>`}
     </div>
   `).join('');
 }
 
+function renderMyGames(){
+  const loginReq = document.getElementById('my-login-required');
+  const emptyState = document.getElementById('my-empty-state');
+  const list = document.getElementById('my-game-list');
+  const newBtn = document.getElementById('my-new-btn');
+
+  if (!currentUser){
+    loginReq.style.display = 'block';
+    emptyState.style.display = 'none';
+    list.innerHTML = '';
+    newBtn.style.display = 'none';
+    return;
+  }
+
+  newBtn.style.display = 'block';
+  loginReq.style.display = 'none';
+
+  const mine = games.filter(g => g.user_id === currentUser.id);
+  emptyState.style.display = mine.length === 0 ? 'block' : 'none';
+  list.innerHTML = buildGameRowsHtml(mine);
+}
+
 document.getElementById('search').addEventListener('input', renderLibrary);
 document.getElementById('filter-genre').addEventListener('change', renderLibrary);
+document.getElementById('filter-author').addEventListener('change', renderLibrary);
 document.getElementById('sort-by').addEventListener('change', renderLibrary);
 
 // ---------- Stats render ----------
@@ -548,6 +839,7 @@ function renderStats(){
 function renderAll(){
   renderLibrary();
   if (document.getElementById('view-stats').classList.contains('active')) renderStats();
+  if (document.getElementById('view-my').classList.contains('active')) renderMyGames();
 }
 
 loadGames();
