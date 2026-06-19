@@ -1,0 +1,556 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Пройдено — библиотека игр</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<style>
+  :root{
+    --bg: #11130F;
+    --bg-elevated: #181B15;
+    --bg-card: #1D2118;
+    --line: #2A2F23;
+    --line-soft: #21251B;
+    --text: #EDEEE6;
+    --text-dim: #9CA28E;
+    --text-faint: #656B57;
+    --accent: #C9F031;
+    --accent-dim: #8FA826;
+    --rating-high: #C9F031;
+    --rating-mid: #E8A23D;
+    --rating-low: #D9573B;
+    --radius: 3px;
+    --display: 'Space Grotesk', sans-serif;
+    --mono: 'IBM Plex Mono', monospace;
+    --body: 'Inter', sans-serif;
+  }
+
+  *{box-sizing:border-box; margin:0; padding:0;}
+
+  body{
+    background:var(--bg);
+    color:var(--text);
+    font-family:var(--body);
+    line-height:1.5;
+    -webkit-font-smoothing:antialiased;
+  }
+
+  ::selection{ background:var(--accent); color:#11130F; }
+
+  a{ color:inherit; }
+
+  /* ---------- Layout shell ---------- */
+  .shell{ max-width:1040px; margin:0 auto; padding:0 24px; }
+
+  header.top{
+    border-bottom:1px solid var(--line);
+    padding:22px 0;
+    position:sticky; top:0;
+    background:rgba(17,19,15,0.92);
+    backdrop-filter:blur(8px);
+    z-index:50;
+  }
+  .top-inner{ display:flex; align-items:center; justify-content:space-between; gap:16px; }
+  .brand{ display:flex; align-items:baseline; gap:10px; }
+  .brand-mark{
+    font-family:var(--mono); font-size:12px; color:var(--accent);
+    border:1px solid var(--accent-dim); padding:3px 6px; border-radius:var(--radius);
+    letter-spacing:0.04em;
+  }
+  .brand-name{ font-family:var(--display); font-size:19px; font-weight:600; letter-spacing:-0.01em; }
+
+  nav.tabs{ display:flex; gap:4px; background:var(--bg-elevated); padding:4px; border-radius:6px; border:1px solid var(--line); }
+  .tab{
+    font-family:var(--mono); font-size:12px; letter-spacing:0.02em;
+    color:var(--text-dim); background:none; border:none; cursor:pointer;
+    padding:8px 14px; border-radius:4px; transition:all .15s ease;
+  }
+  .tab:hover{ color:var(--text); }
+  .tab.active{ background:var(--accent); color:#11130F; font-weight:600; }
+
+  main{ padding:36px 0 80px; }
+  .view{ display:none; }
+  .view.active{ display:block; animation:fadein .25s ease; }
+  @keyframes fadein{ from{opacity:0; transform:translateY(4px);} to{opacity:1; transform:none;} }
+
+  h2.section-title{
+    font-family:var(--display); font-size:14px; font-weight:600;
+    text-transform:uppercase; letter-spacing:0.08em; color:var(--text-dim);
+    margin-bottom:16px; display:flex; align-items:center; gap:10px;
+  }
+  h2.section-title::after{ content:''; flex:1; height:1px; background:var(--line); }
+
+  /* ---------- Library view ---------- */
+  .lib-controls{ display:flex; gap:10px; margin-bottom:22px; flex-wrap:wrap; }
+  input[type=text], input[type=number], input[type=date], select, textarea{
+    background:var(--bg-elevated); border:1px solid var(--line); color:var(--text);
+    font-family:var(--body); font-size:14px; padding:10px 12px; border-radius:var(--radius);
+    outline:none; transition:border-color .15s ease;
+  }
+  input:focus, select:focus, textarea:focus{ border-color:var(--accent-dim); }
+  #search{ flex:1; min-width:160px; }
+  select{ cursor:pointer; }
+
+  #empty-state{
+    text-align:center; padding:70px 20px; color:var(--text-faint);
+    border:1px dashed var(--line); border-radius:6px;
+  }
+  #empty-state .glyph{ font-family:var(--mono); font-size:32px; color:var(--text-faint); margin-bottom:10px; display:block; }
+  #empty-state p{ font-size:14px; max-width:340px; margin:0 auto; }
+
+  .game-row{
+    display:grid; grid-template-columns:46px 1fr auto auto;
+    align-items:center; gap:16px;
+    padding:14px 16px; border:1px solid var(--line-soft); border-radius:var(--radius);
+    background:var(--bg-card); margin-bottom:8px;
+    transition:border-color .15s ease;
+  }
+  .game-row:hover{ border-color:var(--line); }
+  .game-rank{ font-family:var(--mono); font-size:18px; font-weight:700; text-align:center; }
+  .game-info .name{ font-family:var(--display); font-size:15px; font-weight:600; margin-bottom:3px; }
+  .game-info .meta{ font-family:var(--mono); font-size:11px; color:var(--text-dim); letter-spacing:0.02em; }
+  .game-row .del{
+    background:none; border:1px solid var(--line); color:var(--text-faint);
+    width:30px; height:30px; border-radius:var(--radius); cursor:pointer; font-size:14px;
+    transition:all .15s ease;
+  }
+  .game-row .del:hover{ border-color:var(--rating-low); color:var(--rating-low); }
+
+  /* ---------- Add view ---------- */
+  .form-wrap{ max-width:520px; }
+  .field{ margin-bottom:18px; }
+  .field label{
+    display:block; font-family:var(--mono); font-size:11px; text-transform:uppercase;
+    letter-spacing:0.06em; color:var(--text-dim); margin-bottom:6px;
+  }
+  .field input, .field select, .field textarea{ width:100%; }
+  .field-row{ display:flex; gap:14px; }
+  .field-row .field{ flex:1; }
+  .rating-line{ display:flex; align-items:center; gap:14px; }
+  .rating-line input[type=range]{ flex:1; accent-color:var(--accent); }
+  .rating-num{ font-family:var(--display); font-size:22px; font-weight:700; color:var(--accent); min-width:38px; }
+  textarea{ width:100%; resize:vertical; font-family:var(--body); }
+
+  .btn-primary{
+    background:var(--accent); color:#11130F; border:none; font-family:var(--display);
+    font-weight:700; font-size:14px; padding:13px 20px; border-radius:var(--radius);
+    cursor:pointer; width:100%; transition:opacity .15s ease; letter-spacing:0.01em;
+  }
+  .btn-primary:hover{ opacity:0.88; }
+  .btn-primary:disabled{ opacity:0.5; cursor:not-allowed; }
+  .form-status{ font-family:var(--mono); font-size:12px; margin-top:10px; min-height:16px; }
+  .form-status.ok{ color:var(--accent); }
+  .form-status.err{ color:var(--rating-low); }
+
+  /* ---------- Stats view ---------- */
+  .metric-grid{ display:grid; grid-template-columns:repeat(auto-fit, minmax(150px,1fr)); gap:10px; margin-bottom:34px; }
+  .metric{ background:var(--bg-card); border:1px solid var(--line-soft); border-radius:var(--radius); padding:16px; }
+  .metric .label{ font-family:var(--mono); font-size:10px; text-transform:uppercase; letter-spacing:0.06em; color:var(--text-dim); margin-bottom:8px; }
+  .metric .value{ font-family:var(--display); font-size:28px; font-weight:700; }
+
+  .chart-block{ margin-bottom:38px; }
+  .chart-box{ position:relative; height:230px; background:var(--bg-card); border:1px solid var(--line-soft); border-radius:var(--radius); padding:16px; }
+
+  #stats-empty{ text-align:center; padding:70px 20px; color:var(--text-faint); border:1px dashed var(--line); border-radius:6px; }
+
+  footer{ border-top:1px solid var(--line); padding:20px 0; text-align:center; }
+  footer p{ font-family:var(--mono); font-size:11px; color:var(--text-faint); }
+
+  #loading-screen{ text-align:center; padding:120px 20px; color:var(--text-dim); font-family:var(--mono); font-size:13px; }
+  #error-screen{ display:none; text-align:center; padding:80px 20px; color:var(--rating-low); font-family:var(--mono); font-size:13px; max-width:480px; margin:0 auto; }
+
+  @media (max-width:600px){
+    .top-inner{ flex-direction:column; align-items:flex-start; gap:14px; }
+    nav.tabs{ width:100%; }
+    .tab{ flex:1; text-align:center; }
+    .game-row{ grid-template-columns:32px 1fr auto; }
+    .game-row .del{ display:none; }
+    .game-row.swiping .del{ display:block; }
+    .field-row{ flex-direction:column; gap:0; }
+  }
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="shell top-inner">
+    <div class="brand">
+      <span class="brand-mark">▣</span>
+      <span class="brand-name">Пройдено</span>
+    </div>
+    <nav class="tabs">
+      <button class="tab active" data-view="library">Библиотека</button>
+      <button class="tab" data-view="add">Добавить</button>
+      <button class="tab" data-view="stats">Аналитика</button>
+    </nav>
+  </div>
+</header>
+
+<main class="shell">
+
+  <div id="loading-screen">загружаю библиотеку…</div>
+  <div id="error-screen"></div>
+
+  <div id="app-content" style="display:none;">
+
+    <section id="view-library" class="view active">
+      <div class="lib-controls">
+        <input type="text" id="search" placeholder="Поиск по названию…">
+        <select id="filter-genre"><option value="">Все жанры</option></select>
+        <select id="sort-by">
+          <option value="date-desc">Сначала новые</option>
+          <option value="date-asc">Сначала старые</option>
+          <option value="rating-desc">Оценка ↓</option>
+          <option value="rating-asc">Оценка ↑</option>
+          <option value="hours-desc">Часы ↓</option>
+          <option value="name-asc">Название А-Я</option>
+        </select>
+      </div>
+      <div id="empty-state" style="display:none;">
+        <span class="glyph">∅</span>
+        <p>Пока пусто. Перейди во вкладку «Добавить» и занеси первую пройденную игру.</p>
+      </div>
+      <div id="game-list"></div>
+    </section>
+
+    <section id="view-add" class="view">
+      <h2 class="section-title">Новая запись</h2>
+      <div class="form-wrap">
+        <div class="field">
+          <label for="f-name">Название игры</label>
+          <input type="text" id="f-name" placeholder="Hades">
+        </div>
+        <div class="field-row">
+          <div class="field">
+            <label for="f-genre">Жанр</label>
+            <input type="text" id="f-genre" list="genre-list" placeholder="Roguelike">
+            <datalist id="genre-list"></datalist>
+          </div>
+          <div class="field">
+            <label for="f-platform">Платформа</label>
+            <input type="text" id="f-platform" list="platform-list" placeholder="PC">
+            <datalist id="platform-list"></datalist>
+          </div>
+        </div>
+        <div class="field">
+          <label for="f-rating">Оценка</label>
+          <div class="rating-line">
+            <input type="range" id="f-rating" min="1" max="10" step="0.5" value="7">
+            <span class="rating-num" id="f-rating-out">7.0</span>
+          </div>
+        </div>
+        <div class="field-row">
+          <div class="field">
+            <label for="f-hours">Часов пройдено</label>
+            <input type="number" id="f-hours" min="0" step="0.5" placeholder="25">
+          </div>
+          <div class="field">
+            <label for="f-date">Дата завершения</label>
+            <input type="date" id="f-date">
+          </div>
+        </div>
+        <div class="field">
+          <label for="f-note">Заметка (необязательно)</label>
+          <textarea id="f-note" rows="3" placeholder="Впечатления, мысли…"></textarea>
+        </div>
+        <button class="btn-primary" id="f-submit">Добавить в библиотеку</button>
+        <p class="form-status" id="f-status"></p>
+      </div>
+    </section>
+
+    <section id="view-stats" class="view">
+      <div id="stats-empty" style="display:none;">
+        <span class="glyph" style="font-family:var(--mono); font-size:32px; color:var(--text-faint); display:block; margin-bottom:10px;">∅</span>
+        <p>Добавь хотя бы пару игр, чтобы увидеть аналитику.</p>
+      </div>
+      <div id="stats-content" style="display:none;">
+        <div class="metric-grid" id="metric-grid"></div>
+
+        <div class="chart-block">
+          <h2 class="section-title">Оценки по жанрам</h2>
+          <div class="chart-box"><canvas id="chart-genre"></canvas></div>
+        </div>
+        <div class="chart-block">
+          <h2 class="section-title">Игры по платформам</h2>
+          <div class="chart-box"><canvas id="chart-platform"></canvas></div>
+        </div>
+        <div class="chart-block">
+          <h2 class="section-title">Длительность прохождения</h2>
+          <div class="chart-box"><canvas id="chart-hours"></canvas></div>
+        </div>
+        <div class="chart-block">
+          <h2 class="section-title">Динамика оценок по времени</h2>
+          <div class="chart-box"><canvas id="chart-timeline"></canvas></div>
+        </div>
+      </div>
+    </section>
+
+  </div>
+</main>
+
+<footer>
+  <p class="shell">личная библиотека · данные хранятся в твоей базе Supabase</p>
+</footer>
+
+<script>
+// ====== НАСТРОЙКИ ПОДКЛЮЧЕНИЯ К SUPABASE ======
+const SUPABASE_URL = 'https://essawqrlxyrwmvwqqxqq.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_J6uizUFtMWYArf3RfEfKVw_Qi1XmF3a';
+// ================================================
+
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+let games = [];
+let charts = {};
+
+// ---------- Tabs ----------
+document.querySelectorAll('.tab').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.tab').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('view-' + btn.dataset.view).classList.add('active');
+    if (btn.dataset.view === 'stats') renderStats();
+  });
+});
+
+// ---------- Load ----------
+async function loadGames(){
+  const { data, error } = await sb.from('games').select('*').order('play_date', { ascending: false });
+  if (error){
+    document.getElementById('loading-screen').style.display = 'none';
+    const err = document.getElementById('error-screen');
+    err.style.display = 'block';
+    err.textContent = 'Не получилось загрузить данные: ' + error.message;
+    return;
+  }
+  games = data || [];
+  document.getElementById('loading-screen').style.display = 'none';
+  document.getElementById('app-content').style.display = 'block';
+  renderAll();
+}
+
+// ---------- Add ----------
+document.getElementById('f-rating').addEventListener('input', e => {
+  document.getElementById('f-rating-out').textContent = parseFloat(e.target.value).toFixed(1);
+});
+
+document.getElementById('f-submit').addEventListener('click', async () => {
+  const name = document.getElementById('f-name').value.trim();
+  const status = document.getElementById('f-status');
+  if (!name){
+    status.textContent = 'Укажи название игры';
+    status.className = 'form-status err';
+    document.getElementById('f-name').focus();
+    return;
+  }
+
+  const btn = document.getElementById('f-submit');
+  btn.disabled = true;
+  btn.textContent = 'Сохраняю…';
+
+  const payload = {
+    name,
+    genre: document.getElementById('f-genre').value.trim() || 'Без жанра',
+    platform: document.getElementById('f-platform').value.trim() || 'Не указана',
+    rating: parseFloat(document.getElementById('f-rating').value),
+    hours: parseFloat(document.getElementById('f-hours').value) || 0,
+    play_date: document.getElementById('f-date').value || new Date().toISOString().slice(0,10),
+    note: document.getElementById('f-note').value.trim()
+  };
+
+  const { data, error } = await sb.from('games').insert(payload).select();
+
+  btn.disabled = false;
+  btn.textContent = 'Добавить в библиотеку';
+
+  if (error){
+    status.textContent = 'Ошибка сохранения: ' + error.message;
+    status.className = 'form-status err';
+    return;
+  }
+
+  games.unshift(data[0]);
+  status.textContent = 'Игра добавлена ✓';
+  status.className = 'form-status ok';
+  setTimeout(() => status.textContent = '', 2500);
+
+  document.getElementById('f-name').value = '';
+  document.getElementById('f-genre').value = '';
+  document.getElementById('f-platform').value = '';
+  document.getElementById('f-hours').value = '';
+  document.getElementById('f-note').value = '';
+  document.getElementById('f-date').value = '';
+  document.getElementById('f-rating').value = 7;
+  document.getElementById('f-rating-out').textContent = '7.0';
+
+  renderAll();
+});
+
+// ---------- Delete ----------
+async function deleteGame(id){
+  const { error } = await sb.from('games').delete().eq('id', id);
+  if (error){ alert('Не удалось удалить: ' + error.message); return; }
+  games = games.filter(g => g.id !== id);
+  renderAll();
+}
+window.deleteGame = deleteGame;
+
+// ---------- Library render ----------
+function escapeHtml(s){
+  const d = document.createElement('div');
+  d.textContent = s == null ? '' : s;
+  return d.innerHTML;
+}
+
+function ratingColor(r){
+  if (r >= 8) return 'var(--rating-high)';
+  if (r >= 5) return 'var(--rating-mid)';
+  return 'var(--rating-low)';
+}
+
+function populateFilters(){
+  const genres = [...new Set(games.map(g => g.genre).filter(Boolean))].sort();
+  const platforms = [...new Set(games.map(g => g.platform).filter(Boolean))].sort();
+  document.getElementById('genre-list').innerHTML = genres.map(g => `<option value="${escapeHtml(g)}">`).join('');
+  document.getElementById('platform-list').innerHTML = platforms.map(p => `<option value="${escapeHtml(p)}">`).join('');
+  const sel = document.getElementById('filter-genre');
+  const current = sel.value;
+  sel.innerHTML = '<option value="">Все жанры</option>' + genres.map(g => `<option value="${escapeHtml(g)}">${escapeHtml(g)}</option>`).join('');
+  sel.value = current;
+}
+
+function renderLibrary(){
+  populateFilters();
+  const search = document.getElementById('search').value.toLowerCase();
+  const genreFilter = document.getElementById('filter-genre').value;
+  const sortBy = document.getElementById('sort-by').value;
+
+  let list = games.filter(g => {
+    const matchSearch = (g.name || '').toLowerCase().includes(search);
+    const matchGenre = !genreFilter || g.genre === genreFilter;
+    return matchSearch && matchGenre;
+  });
+
+  list.sort((a,b) => {
+    if (sortBy === 'date-desc') return (b.play_date||'').localeCompare(a.play_date||'');
+    if (sortBy === 'date-asc') return (a.play_date||'').localeCompare(b.play_date||'');
+    if (sortBy === 'rating-desc') return b.rating - a.rating;
+    if (sortBy === 'rating-asc') return a.rating - b.rating;
+    if (sortBy === 'hours-desc') return b.hours - a.hours;
+    if (sortBy === 'name-asc') return (a.name||'').localeCompare(b.name||'');
+    return 0;
+  });
+
+  document.getElementById('empty-state').style.display = games.length === 0 ? 'block' : 'none';
+  document.getElementById('game-list').innerHTML = list.map(g => `
+    <div class="game-row">
+      <div class="game-rank" style="color:${ratingColor(g.rating)}">${Number(g.rating).toFixed(1)}</div>
+      <div class="game-info">
+        <div class="name">${escapeHtml(g.name)}</div>
+        <div class="meta">${escapeHtml(g.genre)} · ${escapeHtml(g.platform)} · ${g.hours}ч · ${escapeHtml(g.play_date)}</div>
+      </div>
+      <div></div>
+      <button class="del" onclick="deleteGame('${g.id}')" aria-label="Удалить">✕</button>
+    </div>
+  `).join('');
+}
+
+document.getElementById('search').addEventListener('input', renderLibrary);
+document.getElementById('filter-genre').addEventListener('change', renderLibrary);
+document.getElementById('sort-by').addEventListener('change', renderLibrary);
+
+// ---------- Stats render ----------
+function destroyCharts(){ Object.values(charts).forEach(c => c && c.destroy()); charts = {}; }
+
+const chartFont = { family: 'IBM Plex Mono', size: 11 };
+Chart.defaults.color = '#9CA28E';
+Chart.defaults.font = chartFont;
+Chart.defaults.borderColor = '#2A2F23';
+
+function renderStats(){
+  const empty = games.length === 0;
+  document.getElementById('stats-empty').style.display = empty ? 'block' : 'none';
+  document.getElementById('stats-content').style.display = empty ? 'none' : 'block';
+  if (empty) return;
+
+  destroyCharts();
+
+  const total = games.length;
+  const avgRating = games.reduce((s,g)=>s+Number(g.rating),0) / total;
+  const totalHours = games.reduce((s,g)=>s+Number(g.hours||0),0);
+  const avgHours = totalHours / total;
+
+  document.getElementById('metric-grid').innerHTML = `
+    <div class="metric"><div class="label">Игр пройдено</div><div class="value">${total}</div></div>
+    <div class="metric"><div class="label">Средняя оценка</div><div class="value">${avgRating.toFixed(1)}</div></div>
+    <div class="metric"><div class="label">Часов наиграно</div><div class="value">${Math.round(totalHours)}</div></div>
+    <div class="metric"><div class="label">Среднее на игру</div><div class="value">${avgHours.toFixed(1)}ч</div></div>
+  `;
+
+  // genre
+  const genreMap = {};
+  games.forEach(g => { (genreMap[g.genre] ??= []).push(Number(g.rating)); });
+  const genreLabels = Object.keys(genreMap);
+  const genreAvgs = genreLabels.map(g => Math.round((genreMap[g].reduce((s,r)=>s+r,0)/genreMap[g].length)*10)/10);
+
+  charts.genre = new Chart(document.getElementById('chart-genre'), {
+    type: 'bar',
+    data: { labels: genreLabels, datasets: [{ data: genreAvgs, backgroundColor: '#C9F031', borderRadius: 2, maxBarThickness: 36 }] },
+    options: { responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}}, scales:{ y:{min:0,max:10, grid:{color:'#21251B'}}, x:{grid:{display:false}} } }
+  });
+
+  // platform
+  const platMap = {};
+  games.forEach(g => { platMap[g.platform] = (platMap[g.platform]||0)+1; });
+  const platLabels = Object.keys(platMap);
+  const platette = ['#C9F031','#E8A23D','#5FAE9B','#D9573B','#7E8FE8','#C97AD9'];
+
+  charts.platform = new Chart(document.getElementById('chart-platform'), {
+    type: 'bar',
+    data: { labels: platLabels, datasets: [{ data: platLabels.map(p=>platMap[p]), backgroundColor: platLabels.map((_,i)=>platette[i%platette.length]), borderRadius: 2, maxBarThickness: 28 }] },
+    options: { indexAxis:'y', responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}}, scales:{ x:{ticks:{stepSize:1,precision:0}, grid:{color:'#21251B'}}, y:{grid:{display:false}} } }
+  });
+
+  // hours buckets
+  const buckets = [
+    {label:'0–5ч', min:0, max:5},
+    {label:'5–15ч', min:5, max:15},
+    {label:'15–30ч', min:15, max:30},
+    {label:'30–60ч', min:30, max:60},
+    {label:'60ч+', min:60, max:Infinity}
+  ];
+  const bucketCounts = buckets.map(b => games.filter(g => g.hours>=b.min && g.hours<b.max).length);
+
+  charts.hours = new Chart(document.getElementById('chart-hours'), {
+    type: 'bar',
+    data: { labels: buckets.map(b=>b.label), datasets: [{ data: bucketCounts, backgroundColor: '#5FAE9B', borderRadius: 2, maxBarThickness: 40 }] },
+    options: { responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}}, scales:{ y:{ticks:{stepSize:1,precision:0}, grid:{color:'#21251B'}}, x:{grid:{display:false}} } }
+  });
+
+  // timeline
+  const sorted = [...games].sort((a,b)=>(a.play_date||'').localeCompare(b.play_date||''));
+  charts.timeline = new Chart(document.getElementById('chart-timeline'), {
+    type: 'line',
+    data: { labels: sorted.map(g=>g.play_date), datasets: [{ data: sorted.map(g=>g.rating), borderColor:'#C9F031', backgroundColor:'#C9F031', tension:0.3, pointRadius:3, pointHoverRadius:5 }] },
+    options: {
+      responsive:true, maintainAspectRatio:false,
+      plugins:{ legend:{display:false}, tooltip:{ callbacks:{ afterLabel: ctx => sorted[ctx.dataIndex].name } } },
+      scales:{ y:{min:0,max:10, grid:{color:'#21251B'}}, x:{grid:{display:false}} }
+    }
+  });
+}
+
+function renderAll(){
+  renderLibrary();
+  if (document.getElementById('view-stats').classList.contains('active')) renderStats();
+}
+
+loadGames();
+</script>
+</body>
+</html>
