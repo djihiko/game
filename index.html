@@ -197,7 +197,7 @@
   .password-toggle:hover{ color:var(--text); }
 
   /* ---------- Add view ---------- */
-  .form-wrap{ max-width:520px; }
+  .form-wrap{ max-width:520px; margin:0 auto; }
   .field{ margin-bottom:var(--sp-4); }
   .field label{
     display:block; font-family:var(--mono); font-size:11px; text-transform:uppercase;
@@ -209,8 +209,8 @@
   .rating-line{ display:flex; align-items:center; gap:var(--sp-4); }
   .rating-num{ font-family:var(--display); font-size:22px; font-weight:700; color:var(--accent); min-width:38px; }
 
-  .star-rating{ display:flex; gap:var(--sp-1); }
-  .star-wrap{ position:relative; width:30px; height:30px; cursor:pointer; }
+  .star-rating{ display:flex; gap:3px; flex-wrap:wrap; }
+  .star-wrap{ position:relative; width:22px; height:22px; cursor:pointer; }
   .star-wrap svg{ position:absolute; inset:0; width:100%; height:100%; }
   .star-wrap .star-bg{ fill:var(--line); }
   .star-wrap .star-fill{ fill:var(--accent); }
@@ -369,6 +369,11 @@
               <span class="star-wrap" data-star="3"><svg class="star-bg"><use href="#star-icon"/></svg><svg class="star-fill"><use href="#star-icon"/></svg><span class="star-half left"></span><span class="star-half right"></span></span>
               <span class="star-wrap" data-star="4"><svg class="star-bg"><use href="#star-icon"/></svg><svg class="star-fill"><use href="#star-icon"/></svg><span class="star-half left"></span><span class="star-half right"></span></span>
               <span class="star-wrap" data-star="5"><svg class="star-bg"><use href="#star-icon"/></svg><svg class="star-fill"><use href="#star-icon"/></svg><span class="star-half left"></span><span class="star-half right"></span></span>
+              <span class="star-wrap" data-star="6"><svg class="star-bg"><use href="#star-icon"/></svg><svg class="star-fill"><use href="#star-icon"/></svg><span class="star-half left"></span><span class="star-half right"></span></span>
+              <span class="star-wrap" data-star="7"><svg class="star-bg"><use href="#star-icon"/></svg><svg class="star-fill"><use href="#star-icon"/></svg><span class="star-half left"></span><span class="star-half right"></span></span>
+              <span class="star-wrap" data-star="8"><svg class="star-bg"><use href="#star-icon"/></svg><svg class="star-fill"><use href="#star-icon"/></svg><span class="star-half left"></span><span class="star-half right"></span></span>
+              <span class="star-wrap" data-star="9"><svg class="star-bg"><use href="#star-icon"/></svg><svg class="star-fill"><use href="#star-icon"/></svg><span class="star-half left"></span><span class="star-half right"></span></span>
+              <span class="star-wrap" data-star="10"><svg class="star-bg"><use href="#star-icon"/></svg><svg class="star-fill"><use href="#star-icon"/></svg><span class="star-half left"></span><span class="star-half right"></span></span>
             </div>
             <input type="hidden" id="f-rating" value="7">
             <span class="rating-num" id="f-rating-out">7.0</span>
@@ -555,8 +560,8 @@ async function loadGames(){
 function renderStarRating(value){
   document.querySelectorAll('#f-rating-stars .star-wrap').forEach(wrap => {
     const i = Number(wrap.dataset.star);
-    const starMin = (i - 1) * 2;
-    const frac = Math.max(0, Math.min(1, (value - starMin) / 2));
+    const starMin = i - 1;
+    const frac = Math.max(0, Math.min(1, value - starMin));
     wrap.querySelector('.star-fill').style.clipPath = `inset(0 ${(1 - frac) * 100}% 0 0)`;
   });
 }
@@ -574,7 +579,7 @@ document.getElementById('f-rating-stars').addEventListener('click', e => {
   const wrap = half.closest('.star-wrap');
   const i = Number(wrap.dataset.star);
   const isLeft = half.classList.contains('left');
-  setRating((i - 1) * 2 + (isLeft ? 1 : 2));
+  setRating((i - 1) + (isLeft ? 0.5 : 1));
 });
 
 renderStarRating(7);
