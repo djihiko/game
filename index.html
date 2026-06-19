@@ -142,14 +142,31 @@
   .empty-block .glyph{ font-family:var(--mono); font-size:32px; color:var(--text-faint); margin-bottom:var(--sp-3); display:block; }
   .empty-block p{ font-size:14px; max-width:340px; margin:0 auto; }
 
+  .game-card{ margin-bottom:var(--sp-3); }
   .game-row{
     display:grid; grid-template-columns:64px 1fr auto auto;
     align-items:center; gap:var(--sp-4);
     padding:var(--sp-4) var(--sp-5); border:1px solid var(--line-soft); border-radius:var(--radius);
-    background:var(--bg-card); margin-bottom:var(--sp-3);
+    background:var(--bg-card);
     transition:border-color .15s ease;
   }
   .game-row:hover{ border-color:var(--line); }
+  .game-row[data-toggle-card]{ cursor:pointer; }
+  .game-card.expanded .game-row{ border-bottom-left-radius:0; border-bottom-right-radius:0; }
+  .expand-btn{
+    background:none; border:1px solid var(--line); color:var(--text-faint);
+    width:30px; height:30px; border-radius:var(--radius); cursor:pointer; font-size:12px;
+    transition:all .15s ease;
+  }
+  .expand-btn:hover{ border-color:var(--accent-dim); color:var(--text); }
+  .expand-btn svg{ width:10px; height:10px; transition:transform .15s ease; }
+  .game-card.expanded .expand-btn svg{ transform:rotate(180deg); }
+  .game-note{
+    display:none; padding:var(--sp-4) var(--sp-5);
+    border:1px solid var(--line-soft); border-top:none; border-radius:0 0 var(--radius) var(--radius);
+    background:var(--bg-elevated); color:var(--text-dim); font-size:13px; white-space:pre-wrap;
+  }
+  .game-card.expanded .game-note{ display:block; }
   .game-rank{ position:relative; width:64px; height:64px; flex-shrink:0; }
   .game-rank .star-badge{ position:absolute; inset:0; width:100%; height:100%; fill:var(--accent); }
   .game-rank .rank-num{
@@ -246,7 +263,7 @@
     .top-inner{ flex-direction:column; align-items:flex-start; gap:var(--sp-4); }
     nav.tabs{ width:100%; }
     .tab{ flex:1; text-align:center; }
-    .game-row{ grid-template-columns:52px 1fr auto; }
+    .game-row{ grid-template-columns:52px 1fr auto auto; }
     .game-row .del{ display:none; }
     .game-row.swiping .del{ display:block; }
     .field-row{ flex-direction:column; gap:0; }
@@ -654,6 +671,14 @@ async function deleteGame(id){
 }
 window.deleteGame = deleteGame;
 
+['game-list', 'my-game-list'].forEach(id => {
+  document.getElementById(id).addEventListener('click', e => {
+    const btn = e.target.closest('[data-toggle-card]');
+    if (!btn) return;
+    btn.closest('.game-card').classList.toggle('expanded');
+  });
+});
+
 // ---------- Library render ----------
 function escapeHtml(s){
   const d = document.createElement('div');
@@ -718,19 +743,27 @@ function renderLibrary(){
 }
 
 function buildGameRowsHtml(list){
-  return list.map(g => `
-    <div class="game-row">
-      <div class="game-rank" title="${Number(g.rating).toFixed(1)} / 10">${rankBadgeHtml(g.rating)}</div>
-      <div class="game-info">
-        <div class="name">${escapeHtml(g.name)}</div>
-        <div class="meta">${escapeHtml(profiles[g.user_id] || 'Без имени')} · ${escapeHtml(g.genre)} · ${escapeHtml(g.platform)} · ${g.hours}ч · ${escapeHtml(g.play_date)}</div>
+  return list.map(g => {
+    const hasNote = Boolean(g.note && g.note.trim());
+    return `
+    <div class="game-card">
+      <div class="game-row"${hasNote ? ' data-toggle-card' : ''}>
+        <div class="game-rank" title="${Number(g.rating).toFixed(1)} / 10">${rankBadgeHtml(g.rating)}</div>
+        <div class="game-info">
+          <div class="name">${escapeHtml(g.name)}</div>
+          <div class="meta">${escapeHtml(profiles[g.user_id] || 'Без имени')} · ${escapeHtml(g.genre)} · ${escapeHtml(g.platform)} · ${g.hours}ч · ${escapeHtml(g.play_date)}</div>
+        </div>
+        ${hasNote
+          ? `<button class="expand-btn" aria-label="Показать отзыв"><svg viewBox="0 0 10 6"><path d="M1 1l4 4 4-4" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></button>`
+          : `<div></div>`}
+        ${currentUser && g.user_id === currentUser.id
+          ? `<button class="del" onclick="event.stopPropagation(); deleteGame('${g.id}')" aria-label="Удалить">✕</button>`
+          : `<div></div>`}
       </div>
-      <div></div>
-      ${currentUser && g.user_id === currentUser.id
-        ? `<button class="del" onclick="deleteGame('${g.id}')" aria-label="Удалить">✕</button>`
-        : `<div></div>`}
+      ${hasNote ? `<div class="game-note">${escapeHtml(g.note)}</div>` : ''}
     </div>
-  `).join('');
+  `;
+  }).join('');
 }
 
 function renderMyGames(){
